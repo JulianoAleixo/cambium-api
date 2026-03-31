@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.routes.services.frank_service import obter_taxa_de_cambio 
+from app.services.frank_service import get_exchange_rate
 
 exchange_bp = Blueprint("exchange", __name__)
 
@@ -10,16 +10,16 @@ def get_exchange():
     value = request.args.get('value', default=0.0, type=float)
     
     try:
-        rate = obter_taxa_de_cambio(base, dest)
+        rate = get_exchange_rate(base, dest)
         converted_value = rate * value
         
         return jsonify({
-            "moeda_base": base,
-            "moeda_destino": dest,
-            "valor_original": value,
-            "taxa_utilizada": rate,
-            "valor_convertido": converted_value
+            "base_currency": base,
+            "target_currency": dest,
+            "original_value": value,
+            "exchange_rate": rate,
+            "converted_value": converted_value
         }), 200
         
     except Exception as e:
-        return jsonify({"erro": "Falha na conversão", "detalhes": str(e)}), 400
+        return jsonify({"error": "Conversion failed", "details": str(e)}), 400
