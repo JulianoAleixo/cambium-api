@@ -9,5 +9,5 @@ def get_exchange_rate(base: str, dest: str) -> float:
     
     api_response.raise_for_status() 
     
-    dados = api_response.json()
-    return float(dados["rates"][dest])
+    data = api_response.json()
+    return float(data["rates"][dest])

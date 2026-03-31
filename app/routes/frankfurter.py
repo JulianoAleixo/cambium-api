@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.services.frank_service import get_exchange_rate 
+from app.services.frankfurter import get_exchange_rate 
 
 frankfurter_bp = Blueprint("frankfurter", __name__)
 
@@ -10,6 +10,6 @@ def get_frankfurter_rate():
     
     try:
         rate = get_exchange_rate(base, dest)
-        return jsonify(rate), 200
+        return jsonify({"exchange_rate": rate}), 200
     except Exception as e:
         return jsonify({"error": "It was not possible to obtain the rate.", "details": str(e)}), 400
