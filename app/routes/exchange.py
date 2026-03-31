@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.services.frank_service import get_exchange_rate
+from app.services.frankfurter import get_exchange_rate
 
 exchange_bp = Blueprint("exchange", __name__)
 
