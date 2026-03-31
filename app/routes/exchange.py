@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.routes.services.frank_service import obter_taxa_de_cambio 
+from app.services.frank_service import obter_taxa_de_cambio 
 
 exchange_bp = Blueprint("exchange", __name__)
 

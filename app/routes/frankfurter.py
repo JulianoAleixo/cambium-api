@@ -1,7 +1,7 @@
 # arquivo: frankfurter_routes.py (ou onde estiver seu frankfurter_bp)
 from flask import Blueprint, jsonify, request
 # Importe a função que você acabou de criar (ajuste o caminho do import conforme sua pasta)
-from app.routes.services.frank_service import obter_taxa_de_cambio 
+from app.services.frank_service import obter_taxa_de_cambio 
 
 frankfurter_bp = Blueprint("frankfurter", __name__)
 
