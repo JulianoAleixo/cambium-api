@@ -67,3 +67,41 @@ Com a API rodando, acesse no navegador ou via terminal:
 # Verificar se a API está no ar
 curl http://localhost:5000/health
 ```
+
+---
+
+## Rotas
+
+### Converter de moeda base para moeda destino
+
+GET `http://localhost:5000/exchange?base=<base>&dest=<dest>&value=<value>`
+
+Exemplo: 
+```
+# Chamada
+http://localhost:5000/exchange?base=EUR&dest=USD&value=100
+
+# Retorno
+{
+    "base_currency": "EUR",
+    "converted_value": 114.84,
+    "exchange_rate": 1.1484,
+    "original_value": 100.0,
+    "target_currency": "USD"
+}
+```
+
+### Obter taxa de conversão entre moedas
+
+GET `http://localhost:5000/frankfurter?base=<base>&dest=<dest>`
+
+Exemplo:
+```
+# Chamada: 
+http://localhost:5000/frankfurter?base=EUR&dest=USD
+
+# Retorno: 
+{
+    "exchange_rate": 1.1484
+}s
+```

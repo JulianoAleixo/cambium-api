@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # arquivo: frankfurter_routes.py (ou onde estiver seu frankfurter_bp)
 import requests
 from flask import Blueprint, jsonify, request
@@ -5,6 +6,10 @@ from app.config.settings import Config
 from app.services.frank_service import obter_taxa_de_cambio, validate_dates, calculate_performance
 
 FRANKFURTER_BASE_URL = Config.FRANKFURTER_BASE_URL
+=======
+from flask import Blueprint, jsonify, request
+from app.services.frankfurter import get_exchange_rate 
+>>>>>>> c97315273ca034803287c8518543a63a9752aced
 
 frankfurter_bp = Blueprint("frankfurter", __name__)
 
@@ -14,9 +19,10 @@ def get_frankfurter_rate():
     dest = request.args.get('dest', default='', type=str)
     
     try:
-        rate = obter_taxa_de_cambio(base, dest)
-        return jsonify(rate), 200
+        rate = get_exchange_rate(base, dest)
+        return jsonify({"exchange_rate": rate}), 200
     except Exception as e:
+<<<<<<< HEAD
         return jsonify({"error": "Could not retrieve exchange rate", "details": str(e)}), 400
 
 
@@ -60,3 +66,6 @@ def get_currency_performance_route():
         return jsonify({"error": "Invalid input", "details": str(e)}), 400
     except Exception as e:
         return jsonify({"error": "Failed to analyse performance", "details": str(e)}), 400
+=======
+        return jsonify({"error": "It was not possible to obtain the rate.", "details": str(e)}), 400
+>>>>>>> c97315273ca034803287c8518543a63a9752aced
