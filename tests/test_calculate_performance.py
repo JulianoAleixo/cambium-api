@@ -1,6 +1,6 @@
 import pytest
 
-from app.services.frank_service import calculate_performance
+from app.services.frankfurter import calculate_performance
 
 
 class TestCalculatePerformance:
