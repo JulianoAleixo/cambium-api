@@ -1,6 +1,10 @@
 name: CI/CD da aplicação
 
-on: [push]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
@@ -46,7 +50,11 @@ jobs:
       - run: echo "Running test coverage report"
 
   deployment_app: 
+    needs: [build, test, test_coverage]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     runs-on: ubuntu-latest
+    
     steps:
       - run: echo "Deploying application"
       
