@@ -25,6 +25,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - run: echo "Running tests"
           
@@ -45,6 +46,7 @@ jobs:
           pytest
 
   test_coverage:
+    needs: test
     runs-on: ubuntu-latest
     steps: 
       - run: echo "Running test coverage report"
@@ -71,13 +73,34 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy
-        run: railway up --service $RAILWAY_SERVICE_ID --detach
+        run: railway up --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
 
   notification:
     runs-on: ubuntu-latest
+    needs: deployment_app
+    if: always() && needs.deployment_app.result != 'skipped'
     steps:
-      - run: echo "Notifying user on email"
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_USERNAME }}
+          subject: >
+            ${{ needs.deployment_app.result == 'success' && 'Deploy realizado' || 'Falha no deploy' }}
+            - ${{ github.repository }}
+          body: |
+            Repositório: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Autor: ${{ github.actor }}
+            Status do deploy: ${{ needs.deployment_app.result }}
+
+            URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
