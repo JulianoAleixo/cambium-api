@@ -8,7 +8,7 @@ jobs:
     steps:
       - run: echo "Building application"
       #step 1: baixar o código do repositório para o runner
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       #step 2: configurando versão desejada do python
       - name: Set up Python
@@ -28,7 +28,7 @@ jobs:
       - run: echo "Running tests"
           
       #step 1: baixar o código do repositório para o runner
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       #step 2: configurando versão desejada do python
       - name: Set up Python
@@ -56,6 +56,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Deploying application"
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar .env
+        run: |
+          echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> .env
+          echo "FRANKFURTER_BASE_URL=${{ secrets.FRANKFURTER_BASE_URL }}" >> .env
+          echo "REQUEST_TIMEOUT=${{ secrets.REQUEST_TIMEOUT }}" >> .env
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        run: railway up --service $RAILWAY_SERVICE_ID --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
 
   notification:
     runs-on: ubuntu-latest
