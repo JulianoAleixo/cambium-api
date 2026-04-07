@@ -1,22 +1,23 @@
 name: CI/CD da aplicação
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Building application"
-      #step 1: baixar o código do repositório para o runner
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      #step 2: configurando versão desejada do python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      #step 3: instalando dependências e criando cache de dependências para versões futuras
       - name: Installing dependencies
         run: |
           python -m pip install -r requirements.txt
@@ -27,22 +28,18 @@ jobs:
     steps:
       - run: echo "Running tests"
           
-      #step 1: baixar o código do repositório para o runner
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      #step 2: configurando versão desejada do python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      #step 3: instalando dependências e criando cache de dependências para versões futuras
       - name: Installing dependencies
         run: |
           python -m pip install -r requirements.txt
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      #step 4: executar a suíte de testes
       - name: Running pytest
         run: |
           pytest
@@ -53,9 +50,31 @@ jobs:
       - run: echo "Running test coverage report"
 
   deployment_app: 
+    needs: [build, test, test_coverage]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     runs-on: ubuntu-latest
+    
     steps:
       - run: echo "Deploying application"
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar .env
+        run: |
+          echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> .env
+          echo "FRANKFURTER_BASE_URL=${{ secrets.FRANKFURTER_BASE_URL }}" >> .env
+          echo "REQUEST_TIMEOUT=${{ secrets.REQUEST_TIMEOUT }}" >> .env
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        run: railway up --service $RAILWAY_SERVICE_ID --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
 
   notification:
     runs-on: ubuntu-latest
