@@ -1,18 +1,20 @@
-import requests
 from datetime import datetime
+
+import requests
+
 from app.config.settings import Config
 
 FRANKFURTER_BASE_URL = Config.FRANKFURTER_BASE_URL
 
+
 def get_exchange_rate(base: str, dest: str) -> float:
-    url = f'{FRANKFURTER_BASE_URL}/latest?from={base}&to={dest}'
+    url = f"{FRANKFURTER_BASE_URL}/latest?from={base}&to={dest}"
     api_response = requests.get(url)
-    
-    api_response.raise_for_status() 
-    
+
+    api_response.raise_for_status()
+
     data = api_response.json()
     return float(data["rates"][dest])
-
 
 
 def validate_dates(start_date: str, end_date: str) -> None:
@@ -22,8 +24,8 @@ def validate_dates(start_date: str, end_date: str) -> None:
         ValueError: If the format is invalid or start_date > end_date.
     """
     try:
-        datetime.strptime(start_date, '%Y-%m-%d')
-        datetime.strptime(end_date, '%Y-%m-%d')
+        datetime.strptime(start_date, "%Y-%m-%d")
+        datetime.strptime(end_date, "%Y-%m-%d")
     except ValueError:
         raise ValueError("Dates must be in YYYY-MM-DD format")
 
@@ -31,7 +33,9 @@ def validate_dates(start_date: str, end_date: str) -> None:
         raise ValueError("Start date cannot be later than end date")
 
 
-def calculate_performance(rates: list, base: str, quote: str, start_date: str, end_date: str) -> dict:
+def calculate_performance(
+    rates: list, base: str, quote: str, start_date: str, end_date: str
+) -> dict:
     """Calculates appreciation/depreciation metrics from an ordered list of rates.
 
     Args:
@@ -48,7 +52,9 @@ def calculate_performance(rates: list, base: str, quote: str, start_date: str, e
     initial_rate = rates[0]
     final_rate = rates[-1]
     absolute_change = final_rate - initial_rate
-    percentage_change = (absolute_change / initial_rate) * 100 if initial_rate != 0 else 0
+    percentage_change = (
+        (absolute_change / initial_rate) * 100 if initial_rate != 0 else 0
+    )
 
     return {
         "base_currency": base,
