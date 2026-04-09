@@ -1,8 +1,9 @@
 from flask import Flask
+
 from app.config.settings import Config
-from app.routes.health import health_bp
-from app.routes.frankfurter import frankfurter_bp
 from app.routes.exchange import exchange_bp
+from app.routes.frankfurter import frankfurter_bp
+from app.routes.health import health_bp
 
 
 def create_app(config: Config = None) -> Flask:

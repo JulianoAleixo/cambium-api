@@ -1,0 +1,132 @@
+name: CI/CD da aplicação
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Building application"
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Installing dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+  
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - run: echo "Running lint"
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Installing dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Check formatting with black
+        run: black --check .
+
+      - name: Check import order with isort
+        run: isort --check-only .
+
+      - name: Check style with flake8
+        run: flake8 .
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - run: echo "Running tests"
+          
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Installing dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Running pytest
+        run: |
+          pytest
+
+  test_coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps: 
+      - run: echo "Running test coverage report"
+
+  deployment_app: 
+    needs: [build, test, test_coverage]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+    
+    steps:
+      - run: echo "Deploying application"
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar .env
+        run: |
+          echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> .env
+          echo "FRANKFURTER_BASE_URL=${{ secrets.FRANKFURTER_BASE_URL }}" >> .env
+          echo "REQUEST_TIMEOUT=${{ secrets.REQUEST_TIMEOUT }}" >> .env
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        run: railway up --service cambium-api --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: deployment_app
+    if: always() && needs.deployment_app.result != 'skipped'
+    steps:
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_USERNAME }}
+          subject: >
+            ${{ needs.deployment_app.result == 'success' && 'Deploy realizado' || 'Falha no deploy' }}
+            - ${{ github.repository }}
+          body: |
+            Repositório: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Autor: ${{ github.actor }}
+            Status do deploy: ${{ needs.deployment_app.result }}
+
+            URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+

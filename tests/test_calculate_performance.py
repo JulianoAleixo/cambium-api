@@ -41,9 +41,16 @@ class TestCalculatePerformance:
     def test_calculate_performance_return_contains_all_expected_fields(self):
         result = calculate_performance([5.00, 5.25], "USD", "BRL", "2024-01-01", "2024-01-05")
         expected_fields = [
-            "base_currency", "target_currency", "start_date", "end_date",
-            "initial_rate", "final_rate", "percentage_change",
-            "absolute_change", "highest_rate", "lowest_rate",
+            "base_currency",
+            "target_currency",
+            "start_date",
+            "end_date",
+            "initial_rate",
+            "final_rate",
+            "percentage_change",
+            "absolute_change",
+            "highest_rate",
+            "lowest_rate",
         ]
         for field in expected_fields:
             assert field in result, f"Missing field: {field}"
