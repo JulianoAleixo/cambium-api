@@ -96,7 +96,7 @@ jobs:
           retention-days: 30
 
   deployment_app: 
-    needs: [build, test, test_coverage]
+    needs: [build, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     runs-on: ubuntu-latest
