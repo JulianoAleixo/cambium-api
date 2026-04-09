@@ -19,7 +19,7 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: python -m pip install -r requirements.txt
+        run: pip install -e ".[dev]"
   
   lint:
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: python -m pip install -r requirements.txt
+        run: pip install -e ".[dev]"
 
       - name: Check formatting with black
         run: black --check .
@@ -59,7 +59,7 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: python -m pip install -r requirements.txt
+        run: pip install -e ".[dev]"
 
       - name: Running pytest
         run: pytest
@@ -76,10 +76,10 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: python -m pip install -r requirements.txt pytest-cov
+        run: pip install -e ".[dev]"
 
       - name: Running pytest with coverage
-        run: pytest --cov=app --cov-report=html:htmlcov --cov-report=term-missing
+        run: pytest --cov=app/services --cov-report=html:htmlcov --cov-report=term-missing
 
       - name: Upload coverage HTML report
         if: always()
