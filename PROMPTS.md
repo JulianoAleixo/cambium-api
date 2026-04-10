@@ -28,7 +28,7 @@ A IA ajudou na investigação de erros (como o `KeyError: 'rates'`), problemas d
 
 ---
 
-## 2. Respostas da IA
+## Respostas da IA
 
 A IA conseguiu entender bem o contexto do projeto e, na maioria das vezes, trouxe soluções que não só resolviam o problema, mas também melhoravam a qualidade geral do código.
 
