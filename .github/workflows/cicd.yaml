@@ -132,7 +132,7 @@ jobs:
         # Deploys to Railway only after tests and local validation succeed
         # Restricted to direct pushes on main to avoid deploying from PRs
         runs-on: ubuntu-latest
-        needs: [test_coverage, health_check_local]
+        needs: [test, health_check_local]
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
         steps:
@@ -173,7 +173,7 @@ jobs:
     notification:
         # Sends final status notification regardless of success/failure (except skipped deploys)
         runs-on: ubuntu-latest
-        needs: [deployment_app, health_check_prod]
+        needs: deployment_app
         if: always() && needs.deployment_app.result != 'skipped'
 
         steps:
