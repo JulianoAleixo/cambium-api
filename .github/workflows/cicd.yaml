@@ -19,9 +19,7 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: |
-          python -m pip install -r requirements.txt
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        run: pip install -e ".[dev]"
   
   lint:
     runs-on: ubuntu-latest
@@ -36,9 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: |
-          python -m pip install -r requirements.txt
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        run: pip install -e ".[dev]"
 
       - name: Check formatting with black
         run: black --check .
@@ -63,22 +59,38 @@ jobs:
           python-version: '3.12'
 
       - name: Installing dependencies
-        run: |
-          python -m pip install -r requirements.txt
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        run: pip install -e ".[dev]"
 
       - name: Running pytest
-        run: |
-          pytest
+        run: pytest
 
   test_coverage:
     needs: test
     runs-on: ubuntu-latest
-    steps: 
-      - run: echo "Running test coverage report"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Installing dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Running pytest with coverage
+        run: pytest --cov=app/services --cov-report=html:htmlcov --cov-report=term-missing
+
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+          retention-days: 30
 
   deployment_app: 
-    needs: [build, test, test_coverage]
+    needs: [build, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     runs-on: ubuntu-latest

@@ -48,7 +48,7 @@ source .venv/bin/activate
 **3. Instale as dependências**
 
 ```bash
-pip install -r requirements.txt
+pip install -e ".[dev]"
 ```
 
 **4. Inicie a API**
@@ -61,12 +61,22 @@ A API estará disponível em `http://localhost:5000`.
 
 ### Testando
 
-Com a API rodando, acesse no navegador ou via terminal:
+Com a API rodando, você pode testar de duas formas:
+
+**Via navegador ou terminal:**
 
 ```bash
 # Verificar se a API está no ar
 curl http://localhost:5000/health
 ```
+
+**Rodar testes com cobertura (serviços):**
+
+```bash
+pytest
+```
+
+Isso gerará um relatório de cobertura em `htmlcov/index.html` com visualização interativa.
 
 ---
 
