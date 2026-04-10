@@ -1,173 +1,203 @@
-name: CI/CD da aplicação
+name: CI/CD
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Building application"
-      - uses: actions/checkout@v4
+    build:
+        # Prepares environment and installs dependencies used by all subsequent jobs
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+            - name: Build application
+              run: echo "Building application"
 
-      - name: Installing dependencies
-        run: pip install -e ".[dev]"
-  
-  lint:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - run: echo "Running lint"
-      - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
 
-      - name: Installing dependencies
-        run: pip install -e ".[dev]"
+    lint:
+        # Enforces code quality before allowing tests to run
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Check formatting with black
-        run: black --check .
+            - name: Run lint
+              run: echo "Running lint checks"
 
-      - name: Check import order with isort
-        run: isort --check-only .
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
 
-      - name: Check style with flake8
-        run: flake8 .
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
 
-  test:
-    runs-on: ubuntu-latest
-    needs: build 
-    steps:
-      - run: echo "Running tests"
-      - uses: actions/checkout@v4
+            - name: Check formatting with Black
+              run: black --check .
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+            - name: Check import order with isort
+              run: isort --check-only .
 
-      - name: Installing dependencies
-        run: pip install -e ".[dev]"
+            - name: Check style with flake8
+              run: flake8 .
 
-      - name: Running pytest
-        run: python -m pytest
+    test:
+        # Runs automated tests only after lint passes to avoid wasting CI time
+        runs-on: ubuntu-latest
+        needs: lint
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-  health_check_local:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - run: echo "Testing Health Route Locally"
-      - uses: actions/checkout@v4
+            - name: Run tests
+              run: echo "Running tests"
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
 
-      - name: Installing dependencies
-        run: pip install -e ".[dev]"
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
 
-      - name: Sobe o servidor e testa localmente
-        run: |
-          python run.py &
-          sleep 5
-          curl -f http://127.0.0.1:5000/health
+            - name: Execute pytest
+              run: python -m pytest
 
-  test_coverage:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    health_check_local:
+        # Validates that the application boots and responds locally before deployment
+        runs-on: ubuntu-latest
+        needs: lint
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+            - name: Local health check
+              run: echo "Testing local health endpoint"
 
-      - name: Installing dependencies
-        run: pip install -e ".[dev]"
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
 
-      - name: Running pytest with coverage
-        run: pytest --cov=app/services --cov-report=html:htmlcov --cov-report=term-missing
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
 
-      - name: Upload coverage HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: htmlcov/
-          retention-days: 30
+            - name: Start server and test
+              # Wait for server startup before hitting endpoint
+              run: |
+                  python run.py &
+                  sleep 5
+                  curl -f http://127.0.0.1:5000/health
 
-  deployment_app: 
-    needs: [build, lint, health_check_local, test, test_coverage]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    test_coverage:
+        # Generates coverage report separately to keep test job faster and focused
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-    runs-on: ubuntu-latest
-    
-    steps:
-      - run: echo "Deploying application"
-      - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.12"
 
-      - name: Criar .env
-        run: |
-          echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> .env
-          echo "FRANKFURTER_BASE_URL=${{ secrets.FRANKFURTER_BASE_URL }}" >> .env
-          echo "REQUEST_TIMEOUT=${{ secrets.REQUEST_TIMEOUT }}" >> .env
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
 
-      - name: Instalar Railway CLI
-        run: npm install -g @railway/cli
+            - name: Run tests with coverage
+              run: pytest --cov=app/services --cov-report=html:htmlcov --cov-report=term-missing
 
-      - name: Deploy
-        run: railway up --service cambium-api --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+            - name: Upload coverage report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-report
+                  path: htmlcov/
+                  retention-days: 30
 
-  health_check_prod:
-    runs-on: ubuntu-latest
-    needs: deployment_app
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - run: echo "Verificando API no ar no Railway"
-      - name: Testar URL de Produção
-        run: |
-          sleep 15
-          curl -f https://cambium-api-production.up.railway.app/health
+    deployment_app:
+        # Deploys to Railway only after tests and local validation succeed
+        # Restricted to direct pushes on main to avoid deploying from PRs
+        runs-on: ubuntu-latest
+        needs: [test_coverage, health_check_local]
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
-  notification:
-    runs-on: ubuntu-latest
-    needs: [deployment_app, health_check_prod]
-    if: always() && needs.deployment_app.result != 'skipped'
-    steps:
-      - name: Send email notification
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          to: ${{ secrets.MAIL_TO }}
-          from: ${{ secrets.MAIL_USERNAME }}
-          subject: >
-            ${{ needs.deployment_app.result == 'success' && 'Deploy realizado' || 'Falha no deploy' }}
-            - ${{ github.repository }}
-          body: |
-            Repositório: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Autor: ${{ github.actor }}
-            Status do deploy: ${{ needs.deployment_app.result }}
-            Health Check Produção: ${{ needs.health_check_prod.result }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-            URL do Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - name: Deploy application
+              run: echo "Deploying application"
+
+            - name: Create .env file
+              # Inject required runtime variables from GitHub Secrets
+              run: |
+                  echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> .env
+                  echo "FRANKFURTER_BASE_URL=${{ secrets.FRANKFURTER_BASE_URL }}" >> .env
+                  echo "REQUEST_TIMEOUT=${{ secrets.REQUEST_TIMEOUT }}" >> .env
+
+            - name: Install Railway CLI
+              run: npm install -g @railway/cli
+
+            - name: Run deployment
+              run: railway up --service cambium-api --detach
+              env:
+                  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    health_check_prod:
+        # Confirms deployed service is reachable and healthy in production
+        runs-on: ubuntu-latest
+        needs: deployment_app
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+        steps:
+            - name: Production health check
+              run: |
+                  # Allow time for deployment to stabilize before checking
+                  sleep 15
+                  curl -f https://cambium-api-production.up.railway.app/health
+
+    notification:
+        # Sends final status notification regardless of success/failure (except skipped deploys)
+        runs-on: ubuntu-latest
+        needs: [deployment_app, health_check_prod]
+        if: always() && needs.deployment_app.result != 'skipped'
+
+        steps:
+            - name: Send email notification
+              uses: dawidd6/action-send-mail@v3
+              with:
+                  server_address: smtp.gmail.com
+                  server_port: 465
+                  secure: true
+                  username: ${{ secrets.MAIL_USERNAME }}
+                  password: ${{ secrets.MAIL_PASSWORD }}
+                  to: ${{ secrets.MAIL_TO }}
+                  from: ${{ secrets.MAIL_USERNAME }}
+                  subject: >
+                      ${{ needs.deployment_app.result == 'success' && 'Deployment succeeded' || 'Deployment failed' }}
+                      - ${{ github.repository }}
+                  body: |
+                      Repository: ${{ github.repository }}
+                      Branch: ${{ github.ref_name }}
+                      Commit: ${{ github.sha }}
+                      Author: ${{ github.actor }}
+
+                      Deployment status: ${{ needs.deployment_app.result }}
+                      Production health check: ${{ needs.health_check_prod.result }}
+
+                      Workflow URL:
+                      ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
