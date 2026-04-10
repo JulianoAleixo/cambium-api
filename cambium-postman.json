@@ -1,0 +1,140 @@
+{
+    "info": {
+        "name": "Cambium API",
+        "_postman_id": "cambium-api-collection",
+        "description": "Collection com rotas DEV e PROD da Cambium API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "DEV - Localhost",
+            "item": [
+                {
+                    "name": "Exchange",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "http://localhost:5000/exchange?base=EUR&dest=USD&value=100",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "5000",
+                            "path": ["exchange"],
+                            "query": [
+                                { "key": "base", "value": "EUR" },
+                                { "key": "dest", "value": "USD" },
+                                { "key": "value", "value": "100" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Frankfurter Rate",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "http://localhost:5000/frankfurter?base=EUR&dest=USD",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "5000",
+                            "path": ["frankfurter"],
+                            "query": [
+                                { "key": "base", "value": "EUR" },
+                                { "key": "dest", "value": "USD" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Currency Performance",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "http://localhost:5000/currency-performance?base=EUR&dest=USD&start_date=2025-10-09&end_date=2026-01-05",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "5000",
+                            "path": ["currency-performance"],
+                            "query": [
+                                { "key": "base", "value": "EUR" },
+                                { "key": "dest", "value": "USD" },
+                                { "key": "start_date", "value": "2025-10-09" },
+                                { "key": "end_date", "value": "2026-01-05" }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "PROD - Railway",
+            "item": [
+                {
+                    "name": "Exchange",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "https://cambium-api-production.up.railway.app/exchange?base=EUR&dest=USD&value=100",
+                            "protocol": "https",
+                            "host": [
+                                "cambium-api-production",
+                                "up",
+                                "railway",
+                                "app"
+                            ],
+                            "path": ["exchange"],
+                            "query": [
+                                { "key": "base", "value": "EUR" },
+                                { "key": "dest", "value": "USD" },
+                                { "key": "value", "value": "100" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Frankfurter Rate",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "https://cambium-api-production.up.railway.app/frankfurter?base=EUR&dest=USD",
+                            "protocol": "https",
+                            "host": [
+                                "cambium-api-production",
+                                "up",
+                                "railway",
+                                "app"
+                            ],
+                            "path": ["frankfurter"],
+                            "query": [
+                                { "key": "base", "value": "EUR" },
+                                { "key": "dest", "value": "USD" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Currency Performance",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "https://cambium-api-production.up.railway.app/currency-performance?base=EUR&dest=USD&start_date=2025-10-09&end_date=2026-01-05",
+                            "protocol": "https",
+                            "host": [
+                                "cambium-api-production",
+                                "up",
+                                "railway",
+                                "app"
+                            ],
+                            "path": ["currency-performance"],
+                            "query": [
+                                { "key": "base", "value": "EUR" },
+                                { "key": "dest", "value": "USD" },
+                                { "key": "start_date", "value": "2025-10-09" },
+                                { "key": "end_date", "value": "2026-01-05" }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
